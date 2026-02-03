@@ -1,3 +1,4 @@
+/*
 =============================================================
 Create Database and Schemas
 =============================================================
@@ -10,6 +11,7 @@ WARNING:
     Running this script will drop the entire 'DataWarehouse' database if it exists. 
     All data in the database will be permanently deleted. Proceed with caution 
     and ensure you have proper backups before running this script.
+*/
 
 DROP DATABASE IF EXISTS DataWarehouse;
 CREATE DATABASE DataWarehouse;
@@ -19,7 +21,7 @@ USE DataWarehouse;
 CREATE SCHEMA Bronze;
 
 -- Create schema
-CREATE SCHEMA Shlver;
+CREATE SCHEMA Silver;
 
 -- Create schema
 CREATE SCHEMA Gold;

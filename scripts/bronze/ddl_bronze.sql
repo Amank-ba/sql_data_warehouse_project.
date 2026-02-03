@@ -1,99 +1,73 @@
 /*
 ===============================================================================
-Stored Procedure: Load Bronze Layer (Source -> Bronze)
+DDL Script: Create Bronze Tables
 ===============================================================================
 Script Purpose:
-    This stored procedure loads data into the 'bronze' schema from external CSV files. 
-    It performs the following actions:
-    - Truncates the bronze tables before loading data.
-    - Uses the `BULK INSERT` command to load data from csv Files to bronze tables.
-
-Parameters:
-    None. 
-	  This stored procedure does not accept any parameters or return any values.
-
-Usage Example:
-    EXEC bronze.load_bronze;
+    This script creates tables in the 'bronze' schema, dropping existing tables 
+    if they already exist.
+	  Run this script to re-define the DDL structure of 'bronze' Tables
 ===============================================================================
 */
 
-DELIMITER $$
+-- Drop and recreate the DataWarehouse database
+DROP DATABASE IF EXISTS DataWarehouse;
+CREATE DATABASE DataWarehouse;
+USE DataWarehouse;
 
-CREATE PROCEDURE load_bronze()
-BEGIN
-    -- Declare variables for timing
-    DECLARE start_time DATETIME;
-    DECLARE end_time DATETIME;
+-- Bronze layer tables
 
-    -- Error handler
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        SET end_time = NOW();
-        SELECT 'Error occurred while loading Bronze tables. Please check file paths, permissions, or local_infile settings.' AS error_message,
-               start_time AS procedure_start,
-               end_time AS procedure_end,
-               TIMESTAMPDIFF(SECOND, start_time, end_time) AS duration_seconds;
-    END;
+DROP TABLE IF EXISTS bronze_crm_cust_info;
+CREATE TABLE bronze_crm_cust_info (
+    cst_id              INT,
+    cst_key             VARCHAR(50),
+    cst_firstname       VARCHAR(50),
+    cst_lastname        VARCHAR(50),
+    cst_marital_status  VARCHAR(50),
+    cst_gndr            VARCHAR(50),
+    cst_create_date     DATE
+);
 
-    -- Capture start time
-    SET start_time = NOW();
+DROP TABLE IF EXISTS bronze_crm_prd_info;
+CREATE TABLE bronze_crm_prd_info (
+    prd_id       INT,
+    prd_key      VARCHAR(50),
+    prd_nm       VARCHAR(50),
+    prd_cost     INT,
+    prd_line     VARCHAR(50),
+    prd_start_dt DATETIME,
+    prd_end_dt   DATETIME
+);
 
-    -- CRM Customer Info
-    LOAD DATA LOCAL INFILE 'C:/Users/Aman Kumar/Downloads/Data_warehouse/sql-data-warehouse-project/datasets/source_crm/cust_info.csv'
-    INTO TABLE bronze_crm_cust_info
-    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-    LINES TERMINATED BY '\r\n'
-    IGNORE 1 ROWS
-    (cst_id, cst_key, cst_firstname, cst_lastname, cst_marital_status, cst_gndr, cst_create_date);
+DROP TABLE IF EXISTS bronze_crm_sales_details;
+CREATE TABLE bronze_crm_sales_details (
+    sls_ord_num  VARCHAR(50),
+    sls_prd_key  VARCHAR(50),
+    sls_cust_id  INT,
+    sls_order_dt INT,
+    sls_ship_dt  INT,
+    sls_due_dt   INT,
+    sls_sales    INT,
+    sls_quantity INT,
+    sls_price    INT
+);
 
-    -- CRM Product Info
-    LOAD DATA LOCAL INFILE 'C:/Users/Aman Kumar/Downloads/Data_warehouse/sql-data-warehouse-project/datasets/source_crm/prd_info.csv'
-    INTO TABLE bronze_crm_prd_info
-    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-    LINES TERMINATED BY '\r\n'
-    IGNORE 1 ROWS
-    (prd_id, prd_key, prd_nm, prd_cost, prd_line, prd_start_dt, prd_end_dt);
+DROP TABLE IF EXISTS bronze_erp_loc_a101;
+CREATE TABLE bronze_erp_loc_a101 (
+    cid    VARCHAR(50),
+    cntry  VARCHAR(50)
+);
 
-    -- CRM Sales Details
-    LOAD DATA LOCAL INFILE 'C:/Users/Aman Kumar/Downloads/Data_warehouse/sql-data-warehouse-project/datasets/source_crm/sales_details.csv'
-    INTO TABLE bronze_crm_sales_details
-    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-    LINES TERMINATED BY '\r\n'
-    IGNORE 1 ROWS
-    (sls_ord_num, sls_prd_key, sls_cust_id, sls_order_dt, sls_ship_dt, sls_due_dt, sls_sales, sls_quantity, sls_price);
+DROP TABLE IF EXISTS bronze_erp_cust_az12;
+CREATE TABLE bronze_erp_cust_az12 (
+    cid    VARCHAR(50),
+    bdate  DATE,
+    gen    VARCHAR(50)
+);
 
-    -- ERP Location
-    LOAD DATA LOCAL INFILE 'C:/Users/Aman Kumar/Downloads/Data_warehouse/sql-data-warehouse-project/datasets/source_erp/loc_a101.csv'
-    INTO TABLE bronze_erp_loc_a101
-    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-    LINES TERMINATED BY '\r\n'
-    IGNORE 1 ROWS
-    (cid, cntry);
-
-    -- ERP Customer
-    LOAD DATA LOCAL INFILE 'C:/Users/Aman Kumar/Downloads/Data_warehouse/sql-data-warehouse-project/datasets/source_erp/cust_az12.csv'
-    INTO TABLE bronze_erp_cust_az12
-    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-    LINES TERMINATED BY '\r\n'
-    IGNORE 1 ROWS
-    (cid, bdate, gen);
-
-    -- ERP Product Category
-    LOAD DATA LOCAL INFILE 'C:/Users/Aman Kumar/Downloads/Data_warehouse/sql-data-warehouse-project/datasets/source_erp/px_cat_g1v2.csv'
-    INTO TABLE bronze_erp_px_cat_g1v2
-    FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-    LINES TERMINATED BY '\r\n'
-    IGNORE 1 ROWS
-    (id, cat, subcat, maintenance);
-
-    -- Capture end time
-    SET end_time = NOW();
-
-    -- Success message with timing
-    SELECT 'All Bronze tables loaded successfully!' AS success_message,
-           start_time AS procedure_start,
-           end_time AS procedure_end,
-           TIMESTAMPDIFF(SECOND, start_time, end_time) AS duration_seconds;
-END$$
-
-DELIMITER ;
+DROP TABLE IF EXISTS bronze_erp_px_cat_g1v2;
+CREATE TABLE bronze_erp_px_cat_g1v2 (
+    id           VARCHAR(50),
+    cat          VARCHAR(50),
+    subcat       VARCHAR(50),
+    maintenance  VARCHAR(50)
+);
